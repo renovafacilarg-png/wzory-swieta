@@ -1,9 +1,11 @@
-const CACHE_NAME = 'swk-hub-v2';
+const CACHE_NAME = 'swk-hub-v3';
 const CORE_ASSETS = [
   './',
   './index.html',
   './estilos.css',
   './app.js',
+  './druk.html',
+  './druk.js',
   './datos.js',
   './bonus.js',
   './manifest.webmanifest',

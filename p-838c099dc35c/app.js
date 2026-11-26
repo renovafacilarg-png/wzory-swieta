@@ -539,6 +539,8 @@ function openPattern(id) {
       </div>`
     : '';
 
+  const printLink = `<a class="btn" href="druk.html?id=${encodeURIComponent(id)}">Drukuj wzór (A4 lub większe kratki)</a>`;
+
   $('#detailBody').innerHTML = `
     <div class="dialog-actions-bar">
       <button type="button" id="modal-done" class="btn btn-creme btn-sm" aria-pressed="${done}">
@@ -550,6 +552,8 @@ function openPattern(id) {
     </div>
 
     <div class="dialog-size-box">${sizeInfo}</div>
+
+    <div class="dialog-actions-bar">${printLink}</div>
 
     ${viewTabs}
 
@@ -582,9 +586,10 @@ function openPattern(id) {
       </table>
     </div>
 
-    <p>
-      <a class="btn" href="${safe(pattern.pdfSrc)}" download>Pobierz PDF do druku</a>
-    </p>
+    <div class="dialog-actions-bar">
+      ${printLink}
+      <a class="btn btn-creme" href="${safe(pattern.pdfSrc)}" download>Pobierz PDF do druku</a>
+    </div>
   `;
 
   const viewport = $('#zoomViewport');

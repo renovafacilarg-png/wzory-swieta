@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drukuj wzór</title>
+  <style>
+    :root {
+      --paper-width: 210mm;
+      --paper-height: 297mm;
+      --paper-padding: 8mm;
+      --tile-header-height: 10mm;
+      font-family: system-ui, sans-serif;
+      color: #28211f;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; }
+    [hidden] { display: none !important; }
+
+    .toolbar {
+      background: #fff9f0;
+      border-bottom: 1px solid #dfd2c4;
+      padding: 16px;
+    }
+
+    .toolbar-inner { max-width: 62rem; margin: auto; }
+    .back { color: #842638; font-weight: 700; display: inline-block; padding-block: 8px; }
+    h1 { margin: 4px 0 18px; font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.2; }
+
+    .options {
+      margin: 0;
+      padding: 0;
+      min-width: 0;
+      display: flex;
+      align-items: start;
+      gap: 12px 28px;
+      flex-wrap: wrap;
+      border: 0;
+    }
+
+    .mode-option, .legend-option, .size-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mode-option, .legend-option { min-height: 44px; cursor: pointer; }
+    input { accent-color: #842638; width: 1.2rem; height: 1.2rem; margin: 0; flex: none; }
+    .size-option { flex-wrap: wrap; padding-left: 27px; }
+    select { min-height: 44px; padding: 4px 8px; font: inherit; color: inherit; }
+    output { font-weight: 700; }
+
+    .print-button {
+      min-height: 48px;
+      padding: 10px 30px;
+      margin-top: 12px;
+      border: 0;
+      border-radius: 8px;
+      background: #842638;
+      color: #fff;
+      font: 700 1.15rem system-ui, sans-serif;
+      cursor: pointer;
+    }
+
+    .print-button:disabled { opacity: 0.55; cursor: default; }
+    .help { margin: 8px 0 0; line-height: 1.45; }
+    .status { max-width: 62rem; margin: 16px auto; padding-inline: 16px; }
+
+    .sheet {
+      width: var(--paper-width);
+      height: var(--paper-height);
+      padding: var(--paper-padding);
+      overflow: hidden;
+      background: #fff;
+      color: #111;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+
+    .whole-grid { display: block; margin: auto; }
+    .whole-sheet { display: flex; align-items: center; justify-content: center; }
+
+    .tile-header {
+      height: var(--tile-header-height);
+      padding-bottom: 2mm;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 3mm;
+      font-size: 10pt;
+    }
+
+    .tile-map { display: grid; gap: 0.25mm; flex: none; }
+    .tile-map span { border: 0.2mm solid #444; }
+    .tile-map .current { background: #111; }
+    .tile { position: relative; overflow: hidden; }
+    .tile img { position: absolute; display: block; }
+
+    .legend-sheet h2 { margin: 0 0 2mm; font-size: 18pt; }
+    .legend-sheet h3 { margin: 0 0 5mm; font-size: 13pt; font-weight: 500; }
+    .legend-sheet table { width: 100%; border-collapse: collapse; font-size: 11pt; }
+    .legend-sheet th, .legend-sheet td { border: 0.25mm solid #999; padding: 2mm; text-align: left; }
+    .legend-sheet th { background: #f3f0ed; }
+    .swatch { display: block; width: 6mm; height: 6mm; border: 0.25mm solid #555; }
+    .embroidery-size { font-size: 11pt; line-height: 1.4; }
+
+    @media screen {
+      body { background: #ede8e2; }
+      .preview { margin: 20px 16px; }
+      .sheet-frame {
+        width: calc(var(--paper-width) * var(--preview-scale, 1));
+        height: calc(var(--paper-height) * var(--preview-scale, 1));
+        margin: 0 auto 20px;
+        box-shadow: 0 2px 12px #30201633;
+        overflow: hidden;
+      }
+      .sheet { transform: scale(var(--preview-scale, 1)); transform-origin: top left; }
+    }
+
+    @media screen and (max-width: 600px) {
+      .options { display: grid; gap: 4px; }
+      .print-button { width: 100%; }
+    }
+
+    @media print {
+      .toolbar, .status { display: none; }
+      .sheet-frame:not(:last-child) { break-after: page; page-break-after: always; }
+    }
+  </style>
+  <style id="print-page">@page { size: A4 portrait; margin: 0; }</style>
+  <script src="datos.js" defer></script>
+  <script src="druk.js" defer></script>
+</head>
+<body>
+  <header class="toolbar">
+    <div class="toolbar-inner">
+      <a class="back" href="index.html">← Wróć do wzorów</a>
+      <h1 id="pattern-name">Drukuj wzór</h1>
+      <div id="print-controls" hidden>
+        <fieldset class="options" aria-label="Ustawienia wydruku">
+          <label class="mode-option">
+            <input type="radio" name="mode" id="mode-whole" checked>
+            Cały wzór na jednej kartce A4
+          </label>
+          <div>
+            <label class="mode-option">
+              <input type="radio" name="mode" id="mode-tiles">
+              Większe kratki (na kilku kartkach)
+            </label>
+            <div class="size-option" id="tile-options" hidden>
+              <label for="cell-size">Wielkość kratki</label>
+              <select id="cell-size">
+                <option value="4">4 mm</option>
+                <option value="5">5 mm</option>
+                <option value="6" selected>6 mm</option>
+                <option value="7">7 mm</option>
+                <option value="8">8 mm</option>
+                <option value="10">10 mm</option>
+              </select>
+              <output id="sheet-count" for="cell-size include-legend"></output>
+            </div>
+          </div>
+          <label class="legend-option">
+            <input type="checkbox" id="include-legend" checked>
+            Dołącz legendę kolorów
+          </label>
+        </fieldset>
+        <button class="print-button" id="print-button" type="button" disabled>Drukuj</button>
+        <p class="help">W oknie drukowania wybierz: papier A4, skala 100 % (bez dopasowania), marginesy: brak/minimalne.</p>
+      </div>
+    </div>
+  </header>
+  <p class="status" id="status" role="status">Wczytuję wzór…</p>
+  <main class="preview" id="preview" aria-label="Podgląd wydruku"></main>
+</body>
+</html>
