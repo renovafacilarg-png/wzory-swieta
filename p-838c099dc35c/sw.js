@@ -1,4 +1,4 @@
-const CACHE_NAME = 'swk-hub-v1';
+const CACHE_NAME = 'swk-hub-v2';
 const CORE_ASSETS = [
   './',
   './index.html',
